@@ -1,0 +1,14 @@
+[
+  {
+    "fold": -1,
+    "arch": "resnet50v2",
+    "accuracy": 0.9590443686006825,
+    "precision_macro": 0.940042511035313,
+    "recall_macro": 0.9600315945410927,
+    "f1_macro": 0.9493222467073232,
+    "precision_weighted": 0.960908311032163,
+    "recall_weighted": 0.9590443686006825,
+    "f1_weighted": 0.959498909364528,
+    "split": "test"
+  }
+]

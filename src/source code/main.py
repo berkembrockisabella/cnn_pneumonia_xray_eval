@@ -15,8 +15,8 @@ print("GPU available:", tf.config.list_physical_devices('GPU'))
 
 # Preprocessing pipeline (splits, folds, datagens)
 
-pipeline = DataPipeline(
-    base_path='datasets', target_size=TARGET_SIZE, graphs_dir='outputs/graphs',
+pipeline = DataPipeline( # MUDEI A BASE_PATH E N SPLITS = 5
+    base_path='src\source code\datasets', target_size=TARGET_SIZE, graphs_dir='outputs/graphs',
     random_state=SEED, chestxray8_normal_cap=5000, n_splits=5, test_size=0.15
 )
 pipeline.run()
@@ -31,9 +31,39 @@ baseline_datagen = ImageDataGenerator(rescale=1./255)
 # Preprocessed: with augmentation
 augmented_datagen = pipeline.train_datagen
 
+# Preprocessed: with histogram equalization
+equalized_datagen = ImageDataGenerator(
+    preprocessing_function=pipeline._hist_equalization_preprocessing,
+    rotation_range         = 15,
+    width_shift_range      = 0.05,
+    height_shift_range     = 0.05,
+    zoom_range             = 0.1,
+    horizontal_flip        = True,
+    # brightness_range       = [0.85, 1.15],
+    fill_mode              = 'nearest'
+)
+equalized_val_datagen = ImageDataGenerator(
+    preprocessing_function=pipeline._hist_equalization_preprocessing
+)
+
+# Preprocessed: with adaptive histogram equalization
+adaptive_equalized_datagen = ImageDataGenerator(
+    preprocessing_function=pipeline._adaptive_equalization_preprocessing,
+    rotation_range         = 15,
+    width_shift_range      = 0.05,
+    height_shift_range     = 0.05,
+    zoom_range             = 0.1,
+    horizontal_flip        = True,
+    # brightness_range       = [0.85, 1.15],
+    fill_mode              = 'nearest'
+)
+adaptive_equalized_val_datagen = ImageDataGenerator(
+    preprocessing_function=pipeline._adaptive_equalization_preprocessing
+)
+
 # Experiment runner
 
-def run_experiment(experiment: str, train_datagen) -> tuple:
+def run_experiment(experiment: str, train_datagen, val_datagen=None) -> tuple:
     """
     Runs K-Fold training + test evaluation for all architectures.
 
@@ -42,11 +72,15 @@ def run_experiment(experiment: str, train_datagen) -> tuple:
     experiment    : label used in checkpoints and log filenames
                     ('baseline' or 'preprocessed')
     train_datagen : ImageDataGenerator used for training folds
+    val_datagen   : ImageDataGenerator user for validation/test
 
     Returns
     -------
     cv_metrics, test_metrics : lists of metric dicts
     """
+    if val_datagen is None:
+        val_datagen = pipeline.val_test_datagen
+    
     exp_models_dir = f'{MODELS_DIR}/{experiment}'
     exp_logs_dir   = f'{LOGS_DIR}/{experiment}'
     os.makedirs(exp_models_dir, exist_ok=True)
@@ -93,3 +127,21 @@ print("\n" + "="*55)
 print("  EXPERIMENT 2: PREPROCESSED (with augmentation)")
 print("="*55)
 preprocessed_cv, preprocessed_test = run_experiment('preprocessed', augmented_datagen)
+
+print("\n" + "="*55)
+print("  EXPERIMENT 3: PREPROCESSED (with histogram equalization + augmentation")
+print("="*55)
+histeq_cv, histeq_test = run_experiment(
+    'hist_eq',
+    train_datagen = equalized_datagen,
+    val_datagen   = equalized_val_datagen
+)
+
+print("\n" + "="*55)
+print("  EXPERIMENT 4: PREPROCESSED (with adaptive equalization CLAHE + augmentation")
+print("="*55)
+clahe_cv, clahe_test = run_experiment(
+    'clahe',
+    train_datagen = adaptive_equalized_datagen,
+    val_datagen   = adaptive_equalized_val_datagen
+)

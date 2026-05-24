@@ -78,6 +78,7 @@ class DataPipeline:
         self._stratified_sample()
         self._plot_class_distribution(suffix='_balanced')
         self._plot_preprocessing()
+        self._plot_equalization()
         self._configure_augmentation()
         self._plot_augmentation()
         self._split_kfold()
@@ -107,6 +108,7 @@ class DataPipeline:
         print("Loading metadata...")
         records = []
 
+        print(f"BASE PATH = {self.base_path}")
         for dataset in os.listdir(self.base_path):
             dataset_path = os.path.join(self.base_path, dataset)
             if not os.path.isdir(dataset_path):
@@ -319,16 +321,32 @@ class DataPipeline:
 
     # Preprocessing
 
-    def preprocess_image(self, path, normalize=True):
+    def preprocess_image(self, path, normalize=True, equalization=None):
         """
         Reads, converts to RGB, resizes, and normalizes an image.
         Returns a float32 np.ndarray with values in [0, 1].
+        
+        Equalization:
+        None - no equalization
+        'hist' - Histogram Equalization
+        'adaptive' - Adaptive Histogram Equalization (CLAHE)
         """
         img = cv2.imread(path)
         if img is None:
             raise ValueError(f"Image not found: {path}")
 
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        if equalization is not None:
+            img_gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+            
+            if equalization == 'hist':
+                img_gray = cv2.equalizeHist(img_gray)
+            elif equalization == 'adaptive':
+                clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+                img_gray = clahe.apply(img_gray)
+            
+            img = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2RGB)
+
         img = cv2.resize(img, (self.target_size[1], self.target_size[0]),
                          interpolation=cv2.INTER_AREA)
 
@@ -362,6 +380,53 @@ class DataPipeline:
         plt.savefig(f'{self.graphs_dir}/preprocessing_example.png',
                     dpi=150, bbox_inches='tight')
         plt.close()
+    
+    def _plot_equalization(self):
+        """Displays an image before and after image equalization."""
+        print("\nDemonstrating preprocessing...")
+        self._sample_path = self.df['path'].iloc[0]
+        img_hist          = self.preprocess_image(self._sample_path, equalization='hist')
+        img_adap          = self.preprocess_image(self._sample_path, equalization='adaptive')
+        img_orig          = cv2.cvtColor(cv2.imread(self._sample_path), cv2.COLOR_BGR2RGB)
+
+        plt.figure(figsize=(15, 5))
+        plt.subplot(1, 3, 1)
+        plt.imshow(img_orig)
+        plt.title('Original')
+        plt.axis('off')
+        plt.subplot(1, 3, 2)
+        plt.imshow(img_hist, cmap='gray')
+        plt.title('Histogram Equalization')
+        plt.axis('off')
+        plt.subplot(1, 3, 3)
+        plt.imshow(img_adap, cmap='gray')
+        plt.title('Adaptive Histogram Equalization')
+        plt.axis('off')
+        
+        plt.suptitle('Before × After Equalization', fontweight='bold')
+        plt.tight_layout()
+        plt.savefig(f'{self.graphs_dir}/equalization_example.png',
+                    dpi=150, bbox_inches='tight')
+        plt.close()
+    
+    def _hist_equalization_preprocessing(self, img):
+        img_u8   = np.clip(img, 0, 255).astype(np.uint8)
+        gray     = cv2.cvtColor(img_u8, cv2.COLOR_RGB2GRAY)
+        eq       = cv2.equalizeHist(gray)
+        rgb_eq   = cv2.cvtColor(eq, cv2.COLOR_GRAY2RGB)
+        h, w     = self.target_size
+        resized  = cv2.resize(rgb_eq, (w, h), interpolation=cv2.INTER_AREA)
+        return resized.astype(np.float32) / 255.0
+
+    def _adaptive_equalization_preprocessing(self, img):
+        img_u8   = np.clip(img, 0, 255).astype(np.uint8)
+        gray     = cv2.cvtColor(img_u8, cv2.COLOR_RGB2GRAY)
+        clahe    = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        eq       = clahe.apply(gray)
+        rgb_eq   = cv2.cvtColor(eq, cv2.COLOR_GRAY2RGB)
+        h, w     = self.target_size
+        resized  = cv2.resize(rgb_eq, (w, h), interpolation=cv2.INTER_AREA)
+        return resized.astype(np.float32) / 255.0
 
     # Augmentation
 
@@ -380,7 +445,7 @@ class DataPipeline:
             height_shift_range = 0.05,
             zoom_range         = 0.1,
             horizontal_flip    = True,
-            brightness_range   = [0.85, 1.15],
+            # brightness_range   = [0.85, 1.15],
             fill_mode          = 'nearest'
         )
 
@@ -398,7 +463,7 @@ class DataPipeline:
             rescale=1./255, rotation_range=15,
             width_shift_range=0.05, height_shift_range=0.05,
             zoom_range=0.1, horizontal_flip=True,
-            brightness_range=[0.85, 1.15], fill_mode='nearest'
+            # brightness_range=[0.85, 1.15], fill_mode='nearest'
         )
 
         fig, axes = plt.subplots(2, 5, figsize=(16, 7))

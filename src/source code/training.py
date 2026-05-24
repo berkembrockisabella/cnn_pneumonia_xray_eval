@@ -35,7 +35,7 @@ LR_P2         = 1e-5
 
 LABEL_MAP     = {'NORMAL': 0, 'PNEUMONIA': 1}
 CLASS_NAMES   = ['NORMAL', 'PNEUMONIA']
-ARCHITECTURES = ['resnet50v2', 'densenet121', 'efficientnetb0']
+ARCHITECTURES = ['resnet50v2' , 'densenet121', 'efficientnetb0']
 
 tf.random.set_seed(SEED)
 np.random.seed(SEED)
