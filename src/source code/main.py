@@ -15,8 +15,8 @@ print("GPU available:", tf.config.list_physical_devices('GPU'))
 
 # Preprocessing pipeline (splits, folds, datagens)
 
-pipeline = DataPipeline( # MUDEI A BASE_PATH E N SPLITS = 5
-    base_path='src\source code\datasets', target_size=TARGET_SIZE, graphs_dir='outputs/graphs',
+pipeline = DataPipeline(
+    base_path='datasets', target_size=TARGET_SIZE, graphs_dir='outputs/graphs',
     random_state=SEED, chestxray8_normal_cap=5000, n_splits=5, test_size=0.15
 )
 pipeline.run()
