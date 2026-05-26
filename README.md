@@ -8,6 +8,8 @@ Applied deep learning project for binary classification of **pneumonia** in ches
 ## Motivation
 
 Pneumonia remains a major public health concern, demanding rapid and precise diagnosis for effective treatment and prevent complications. Deep learning-based diagnostic support systems have shown strong potential for accelerating and standardizing clinical screening.
+
+
 This project evaluates well-established CNN architectures — **ResNet50V2**, **DenseNet**, and **EfficientNet** — comparing their performance on binary classification (NORMAL × PNEUMONIA) under four experimental conditions: no augmentation (baseline), with augmentation, with histogram equalization, and with adaptive equalization (CLAHE).
 
 ---
