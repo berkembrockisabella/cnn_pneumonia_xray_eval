@@ -31,35 +31,6 @@ baseline_datagen = ImageDataGenerator(rescale=1./255)
 # Preprocessed: with augmentation
 augmented_datagen = pipeline.train_datagen
 
-# Preprocessed: with histogram equalization
-equalized_datagen = ImageDataGenerator(
-    preprocessing_function=pipeline._hist_equalization_preprocessing,
-    rotation_range         = 15,
-    width_shift_range      = 0.05,
-    height_shift_range     = 0.05,
-    zoom_range             = 0.1,
-    horizontal_flip        = True,
-    # brightness_range       = [0.85, 1.15],
-    fill_mode              = 'nearest'
-)
-equalized_val_datagen = ImageDataGenerator(
-    preprocessing_function=pipeline._hist_equalization_preprocessing
-)
-
-# Preprocessed: with adaptive histogram equalization
-adaptive_equalized_datagen = ImageDataGenerator(
-    preprocessing_function=pipeline._adaptive_equalization_preprocessing,
-    rotation_range         = 15,
-    width_shift_range      = 0.05,
-    height_shift_range     = 0.05,
-    zoom_range             = 0.1,
-    horizontal_flip        = True,
-    # brightness_range       = [0.85, 1.15],
-    fill_mode              = 'nearest'
-)
-adaptive_equalized_val_datagen = ImageDataGenerator(
-    preprocessing_function=pipeline._adaptive_equalization_preprocessing
-)
 
 # Experiment runner
 
@@ -127,21 +98,3 @@ print("\n" + "="*55)
 print("  EXPERIMENT 2: PREPROCESSED (with augmentation)")
 print("="*55)
 preprocessed_cv, preprocessed_test = run_experiment('preprocessed', augmented_datagen)
-
-print("\n" + "="*55)
-print("  EXPERIMENT 3: PREPROCESSED (with histogram equalization + augmentation")
-print("="*55)
-histeq_cv, histeq_test = run_experiment(
-    'hist_eq',
-    train_datagen = equalized_datagen,
-    val_datagen   = equalized_val_datagen
-)
-
-print("\n" + "="*55)
-print("  EXPERIMENT 4: PREPROCESSED (with adaptive equalization CLAHE + augmentation")
-print("="*55)
-clahe_cv, clahe_test = run_experiment(
-    'clahe',
-    train_datagen = adaptive_equalized_datagen,
-    val_datagen   = adaptive_equalized_val_datagen
-)

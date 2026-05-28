@@ -8,6 +8,7 @@ graphs/
 splits_dataset.csv
 
 outputs/models/
+cache/
 
 # Python
 __pycache__/

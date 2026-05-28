@@ -445,7 +445,7 @@ class DataPipeline:
             height_shift_range = 0.05,
             zoom_range         = 0.1,
             horizontal_flip    = True,
-            # brightness_range   = [0.85, 1.15],
+            brightness_range   = [0.85, 1.15],
             fill_mode          = 'nearest'
         )
 

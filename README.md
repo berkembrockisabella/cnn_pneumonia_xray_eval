@@ -49,9 +49,10 @@ Only considering NORMAL and PNEUMONIA categories.
 │   └── models/               # Final trained models
 ├── src/
 │   └── source code/
-│       ├── main.py           # Experiment orchestration
-│       ├── preprocessing.py  # Data pipeline (DataPipeline)
-│       └── training.py       # Training, validation and fold evaluation
+│       ├── main.py                         # Experiment orchestration
+│       ├── preprocessing_combinations.py   # Preprocessing combinations test
+│       ├── preprocessing.py                # Data pipeline (DataPipeline)
+│       └── training.py                     # Training, validation and fold evaluation
 └── requirements.txt          # Project requirements
 ```
  
